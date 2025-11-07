@@ -11,6 +11,8 @@ jobs:
           git clone --depth=1 https://gitea.com/easy3dfun/lensholder.git
           rm -r lensholder/.git
           git init .
+          git config user.name "-"
+          git config user.email "-"
           git add -A
           git commit -m "Snapshot $(date)"
           git remote add origin ${{ github.repositoryUrl }}
