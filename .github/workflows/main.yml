@@ -6,8 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          mkdir repo
-          cd repo
           git clone --depth=1 https://gitea.com/easy3dfun/lensholder.git
           rm -r lensholder/.git
           git init .
