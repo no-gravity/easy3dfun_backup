@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        display: grid;
+        grid-template-rows: auto 1fr 1fr;
+        gap: 10px;
+        margin: 20px;
+        height: 95vh;
+        font-family: Arial, sans-serif;
+      }
+      #inputArea {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      #urlInput {
+        flex: 1;
+        padding: 8px;
+      }
+      #renderOutput, #statsOutput {
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+        font-family: monospace;
+      }
+      textarea {
+        resize: none;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="inputArea">
+      <select id="urlInput">
+        <option>corner_arc.scad</option>
+        <option>lensholder.scad</option>
+        <option>symmetrical_press_fit_box.scad</option>
+      </select>
+      <button id="renderBtn">Render</button>
+    </div>
+
+    <textarea id="renderOutput" placeholder="Rendered file will appear here." spellcheck=false></textarea>
+
+    <textarea id="statsOutput" placeholder="Stats..." spellcheck=false></textarea>
+
+    <script>
+      const renderBtn = document.getElementById('renderBtn');
+      const urlInput = document.getElementById('urlInput');
+      const renderOutput = document.getElementById('renderOutput');
+      const statsOutput = document.getElementById('statsOutput');
+
+      async function fetchAndExpand(url, includedFiles = new Set()) {
+        const timeParam = `time=${Date.now()}`;
+        const fetchUrl = url.includes('?') ? `${url}&${timeParam}` : `${url}?${timeParam}`;
+        const response = await fetch(fetchUrl);
+        if (!response.ok) throw new Error(`Cannot load file: ${url}`);
+        let text = await response.text();
+
+        const lines = text.split('\n');
+        const mainLines = [];
+        const includesAtEnd = [];
+
+        for (const line of lines) {
+          const match = line.trim().match(/^\/\/>\s*include_bottom\s+(.+)$/i);
+          const includeFile = match ? match[1] : null;
+
+          if (includeFile) {
+            includedFiles.add(includeFile);
+            mainLines.push(`//> include_bottom ${includeFile}`);
+
+            const base = new URL(url, window.location.href);
+            const includeUrl = new URL(includeFile, base).href;
+
+            try {
+              const includedContent = await fetchAndExpand(includeUrl, includedFiles);
+              includesAtEnd.push(
+                `\n//> // ----------\n//> // ${includeFile}\n//> // ----------\n\n${includedContent}\n`
+              );
+            } catch (err) {
+              includesAtEnd.push(`\n// ERROR: Failed to include ${includeFile}: ${err.message}\n`);
+            }
+          } else {
+            mainLines.push(line);
+          }
+        }
+
+        return [...mainLines, ...includesAtEnd].join('\n');
+      }
+
+      renderBtn.addEventListener('click', async () => {
+        const url = urlInput.value.trim();
+        if (!url) {
+          alert('Please enter a file URL.');
+          return;
+        }
+
+        try {
+          const includedFiles = new Set();
+          const expandedText = await fetchAndExpand(url, includedFiles);
+          renderOutput.value = expandedText;
+
+          const lineCount = expandedText.split('\n').length;
+          const includedList = Array.from(includedFiles).join('\n') || 'None';
+          statsOutput.value = `Number of lines: ${lineCount}\n\nIncluded files:\n${includedList}`;
+        } catch (error) {
+          renderOutput.value = '';
+          statsOutput.value = `Error: ${error.message}`;
+        }
+      });
+    </script>
+
+  </body>
+</html>
