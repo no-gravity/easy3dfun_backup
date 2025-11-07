@@ -9,6 +9,8 @@ jobs:
       - run: |
           git clone --depth=1 https://gitea.com/easy3dfun/lensholder.git
           rm -r lensholder/.git
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
           git add -A
           git commit -m "Snapshot $(date)"
           git push
