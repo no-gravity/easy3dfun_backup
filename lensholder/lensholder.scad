@@ -4,13 +4,15 @@
     down by the little spheres.
 */
 
+version = "v0.5";
+
 //> include_bottom symmetrical_press_fit_box.scad
 //> include_bottom lensholder_clamps.scad
 
 production_quality = false;
 
-$fa = production_quality ?    1 :    4; // minimum angle of a fragment
-$fs = production_quality ? 0.02 : 0.25; // minimum size of a fragment
+$fa = production_quality ?     2 :    4; // minimum angle of a fragment
+$fs = production_quality ? 0.125 : 0.25; // minimum size of a fragment
 
 /* Parameters in mm */
 lens_diameter    = 60;
@@ -29,6 +31,10 @@ inner_side = diameter_with_tolerance;
 inner_corner_radius = corner_radius - wall_thickness;
 
 lens_box();
+
+translate([0,0,0.8])
+  linear_extrude(1)
+    text(version, halign="center", valign="center", size=8);
 
 // --------------------------------------------------
 // Modules
