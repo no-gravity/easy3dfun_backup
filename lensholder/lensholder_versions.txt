@@ -1,0 +1,7 @@
+variables:
+cooldown_time: Time on the build plate after the print, before taking the object off.
+
+v0.5:
+date: 2025-11-28 15:45
+cooldown_time: 5min
+info: Sits perfectly flat on a table after the print.
